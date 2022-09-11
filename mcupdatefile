@@ -1,0 +1,96 @@
+#!/bin/bash
+
+$pcver="1.0"
+
+# Required for this
+dialog=$(which dialog)
+if [[ $dialog == "" ]]; then
+  printf "Installing dialog... "
+  if [[ $updated == 0 ]]; then
+    apt-get update > /dev/null 2>&1
+    updated=1
+  fi
+  apt-get -y install dialog > /dev/null 2>&1
+  dialog=$(which dialog)
+  if [[ $dialog == "" ]]; then
+    echo "Failed. Aborting. Install dialog first."
+    exit 0
+  else
+    echo "Success."
+  fi
+fi
+
+dialog --title "Plugin Updater $pcver" \
+--msgbox "
+       Update all current Minecraft plugins
+
+" 12 48
+
+ interface=""
+  host=github.com
+  host_ip=$(getent ahosts "$host" | awk '{print $1; exit}')
+  interface=`ip route get "$host_ip" | grep -Po '(?<=(dev )).*(?= src| proto)' | cut -f 1 -d " "`
+  ip=$(/sbin/ip -f inet addr show $interface | grep -Po 'inet \K[\d.]+' | head -n 1)
+  if [[ $ip == "" ]]; then
+    # Never reply with a blank string - instead, use localhost if no IP is found
+    # This would be the case if no network connection is non-existent
+    ip="127.0.0.1"
+  fi
+
+dialog --title "Paper/Geyser/Floodgate Installer $pcver" \
+--msgbox "
+       The Latest version this upgrades to is:
+		Paper-1.19.2-133
+	To upgrade please go to papermc's
+	website: http://papermc.io/downloads
+
+" 12 48
+
+
+cd /home/ubuntu/minecraft/
+ 
+
+exec wget -O server.jar https://api.papermc.io/v2/projects/paper/versions/1.19.2/builds/138/downloads/paper-1.19.2-138.jar
+ 
+exec mv -f server.jar minecraft.jar
+
+cd /home/ubuntu/minecraft/plugins/
+ 
+
+exec wget -O floodgate-spigot.jar https://ci.opencollab.dev/job/GeyserMC/job/Floodgate/job/master/lastSuccessfulBuild/artifact/spigot/target/floodgate-spigot.jar
+exec wget -O worldedit.jar https://dev.bukkit.org/projects/worldedit/files/latest
+exec wget -O GeyserMC.jar https://ci.opencollab.dev//job/GeyserMC/job/Geyser/job/master/lastSuccessfulBuild/artifact/bootstrap/spigot/target/Geyser-Spigot.jar
+exec wget -O Luckperms.jar https://download.luckperms.net/1449/bukkit/loader/LuckPerms-Bukkit-5.4.41.jar
+exec wget -O Craftbook.jar https://dev.bukkit.org/projects/craftbook/files/latest
+
+
+exec mv -f Craftbook.jar /home/ubuntu/minecraft/plugins/Craftbook.jar
+exec mv -f Luckperms.jar /home/ubuntu/minecraft/plugins/Luckperms.jar
+exec mv -f worldedit.jar /home/ubuntu/minecraft/plugins/worldedit.jar
+exec mv -f floodgate-spigot.jar /home/ubuntu/minecraft/plugins/floodgate-spigot.jar
+exec mv -f GeyserMC.jar /home/ubuntu/minecraft/plugins/GeyserMC.jar
+
+clear
+
+dialog --title "Server Plugin Updater $pcver" \
+--msgbox "
+	Complete! Go to /home/ubuntu/minecraft to
+	     make sure to double check if it has
+		Fully downloaded into the correct
+		 	  File location!
+	
+" 16 48
+
+clear
+
+
+
+dialog --title "Server Plugin Updater" \
+--msgbox "
+	Starting Server now...
+" 16 48
+
+clear
+
+cd /home/ubuntu/minecraft/
+exec ./server
